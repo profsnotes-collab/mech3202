@@ -1,0 +1,247 @@
+.loader {
+  border: 8px solid #f3f3f3; /* Light grey */
+  border-top: 8px solid #10a37f; /* Green */
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 1s linear infinite;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.main,
+.main input {
+  font-size: 16px;
+  line-height: 24px;
+  color: #353740;
+  font-family: "ColfaxAI", Helvetica, sans-serif;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 20px;
+  position: relative;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 0 20px;
+}
+
+.titleContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.iconContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background-color: #f0f0f0;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.appLogo {
+  width: 34px;
+  margin-bottom: 8px;
+}
+
+.menuIcon,
+.userIcon {
+  width: 24px;
+}
+
+.header h3 {
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: bold;
+  color: #202123;
+  margin: 0;
+}
+
+.userSection {
+  display: flex;
+  align-items: center;
+  background-color: #f0f0f0;
+  border-radius: 20px;
+  padding: 8px 12px;
+}
+
+.userIcon {
+  width: 24px;
+  margin-right: 8px;
+}
+
+.userName {
+  font-size: 16px;
+  color: #202123;
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background-color: #ffffff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 16px;
+  position: absolute;
+  top: 60px;
+  left: 20px;
+  z-index: 1000;
+}
+
+.menu button {
+  padding: 8px 16px;
+  border: none;
+  background-color: #10a37f;
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-bottom: 8px;
+  width: 100%;
+  text-align: left;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 900px;
+  margin: 20px 0;
+}
+
+.window {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  border: 1px solid #10a37f;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  background-color: #f9f9f9;
+  transition: background-color 0.3s;
+  margin-bottom: 20px;
+}
+
+.window:hover {
+  background-color: #f0f0f0;
+}
+
+.image {
+  margin-top: 16px;
+  width: 100%;
+  max-width: 500px;
+  height: auto;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 600px;
+  margin: 20px 0;
+}
+
+.input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #10a37f;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  outline-color: #10a37f;
+}
+
+.submitButton {
+  width: 100%;
+  padding: 12px 0;
+  color: #ffffff !important;
+  background-color: #10a37f;
+  border: none;
+  border-radius: 4px;
+  text-align: center;
+  cursor: pointer;
+  margin-bottom: 16px;
+}
+
+.button {
+  padding: 8px 16px;
+  color: #fff;
+  background-color: #10a37f;
+  border: none;
+  border-radius: 4px;
+  text-align: center;
+  cursor: pointer;
+  margin-top: 16px;
+}
+
+.youtubeWindow {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.youtubeContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.youtubeContainer iframe {
+  width: 100%;
+  max-width: 560px;
+  height: 315px;
+}
+
+.footer {
+  margin-top: 40px;
+  width: 100%;
+  text-align: center;
+  color: #8e8ea0;
+  font-size: 14px;
+}
+
+.youtubeVideoTitle {
+  font-size: 18px;
+  font-weight: bold;
+  margin: 8px 0;
+}
+
+.youtubeVideoDescription {
+  font-size: 14px;
+  color: #606060;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.bannerImage {
+  position: fixed;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: auto;
+  height: 100%;
+  z-index: -1;
+  object-fit: cover;
+}
