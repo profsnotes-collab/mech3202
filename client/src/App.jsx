@@ -1,9 +1,10 @@
 import React, { useState, useRef } from 'react';
-import { BlockMath, InlineMath } from 'react-katex';
+import { BlockMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
+import { db } from './firebaseConfig';
+import { collection, addDoc } from 'firebase/firestore';
 import styles from './index.module.css';
 import innovation from './assets/innovation.png';
-import image from './assets/image.webp';
 import menuIcon from './assets/menu.png';
 import userIcon from './assets/user.png';
 
@@ -21,10 +22,22 @@ function App() {
   const youtubeRef = useRef(null);
   const [menuOpen, setMenuOpen] = useState(false);
 
+  const saveSearchToFirestore = async (query) => {
+    try {
+      await addDoc(collection(db, "User-Queries/Queries"), {
+        query,
+        timestamp: new Date()
+      });
+      console.log("Search saved to Firestore");
+    } catch (e) {
+      console.error("Error adding document: ", e);
+    }
+  };
+
   const fetchEquationsAndText = async () => {
     setLoading(true);
     try {
-      const response = await fetch("https://notes-service-dot-profsnotes.appspot.com/query", {
+      const response = await fetch("https://notes-service-dot-profsnotes.appspot.com/query_technical", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -37,6 +50,7 @@ function App() {
       setEquationDescription1(data.EquationDescription1);
       setEquationDescription2(data.EquationDescription2);
       setProfNotesText(data.Text);
+      saveSearchToFirestore(researchTopic);
     } catch (error) {
       console.error("Error fetching equations and text:", error);
     }
