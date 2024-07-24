@@ -17,7 +17,8 @@ function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const youtubeRef = useRef(null);
-  const baseURL = window.location.origin;
+
+  const baseURL = 'https://profsnotes-ai.nn.r.appspot.com';
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
