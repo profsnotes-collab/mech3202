@@ -155,7 +155,7 @@ function App() {
                 {description && <p>{description}</p>}
               </div>
             );
-          } else if (key.startsWith('Image')) {
+          } else if (key.startsWith('Image') && !key.startsWith('ImageDescription')) {
             const index = key.replace('Image', '');
             const description = response[`ImageDescription${index}`];
             return (
@@ -170,6 +170,7 @@ function App() {
       </div>
     );
   };
+
 
   const renderWikipedia = () => {
     if (!data?.wikipedia_response?.results) {
