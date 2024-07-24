@@ -5,13 +5,12 @@ import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDPd86tojrZy0vr5xvBjEwWYc9l-20YUe4",
-  authDomain: "prof-notes-ai.firebaseapp.com",
-  projectId: "prof-notes-ai",
-  storageBucket: "prof-notes-ai.appspot.com",
-  messagingSenderId: "230906490116",
-  appId: "1:230906490116:web:5cba3a180ef814b2df7451",
-  measurementId: "G-HSNGFC8X53"
+  apiKey: "AIzaSyAejR9MRXq9fcZm66RC6arxmqCmfOQD1BM",
+  authDomain: "profsnotes-mech3202.firebaseapp.com",
+  projectId: "profsnotes-mech3202",
+  storageBucket: "profsnotes-mech3202.appspot.com",
+  messagingSenderId: "495351986449",
+  appId: "1:495351986449:web:f1d3e62c8c359f414334b0"
 };
 
 const app = initializeApp(firebaseConfig);
