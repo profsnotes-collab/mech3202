@@ -146,7 +146,7 @@ function App() {
   
         {/* Display equations, images, and their descriptions */}
         {Object.entries(response).map(([key, value]) => {
-          if (key.startsWith('Equation')) {
+          if (key.startsWith('Equation') && !key.startsWith('EquationDescription')) {
             const index = key.replace('Equation', '');
             const description = response[`EquationDescription${index}`];
             return (
