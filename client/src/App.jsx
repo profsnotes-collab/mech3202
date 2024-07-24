@@ -26,7 +26,8 @@ function App() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const youtubeRef = useRef(null);
   const baseURL = window.location.origin;
-
+  console.log('Base URL (window.location.origin):', baseURL);
+  
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setIsLoggedIn(!!user);
