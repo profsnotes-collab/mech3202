@@ -27,7 +27,7 @@ function App() {
   const youtubeRef = useRef(null);
   const baseURL = window.location.origin;
   console.log('Base URL (window.location.origin):', baseURL);
-  
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setIsLoggedIn(!!user);
@@ -81,6 +81,9 @@ function App() {
       equations: [],
       equationDescriptions: []
     });
+
+    setCurrentJoke(jokes[Math.floor(Math.random() * jokes.length)]);
+
 
     try {
       const token = sessionStorage.getItem('token');
@@ -185,63 +188,64 @@ function App() {
         )}
       </form>
 
-      <main className={styles.content}>
-        {loading ? (
-          <p>Loading...</p>
-        ) : (
-          <>
-            <section className={styles.section}>
-              <h2>Prof Notes</h2>
-              <p>{data.profNotesText}</p>
-              {data.images.map((img, index) => (
-                <div key={index}>
-                  <img src={img.url} alt={`Image ${index}`} className={styles.image} />
-                  <p>{img.description}</p>
-                </div>
-              ))}
-              {data.equations.map((eq, index) => (
-                <div key={index}>
-                  <BlockMath math={eq} />
-                  <p>{data.equationDescriptions[index]}</p>
-                </div>
-              ))}
-            </section>
+      {loading ? (
+        <div className={styles.loaderContainer}>
+          <div className={styles.loader}></div>
+          <p className={styles.joke}>{currentJoke}</p>
+        </div>
+      ) : (
+        <main className={styles.content}>
+          <section className={styles.section}>
+            <h2>Prof Notes</h2>
+            <p>{data.profNotesText}</p>
+            {data.images.map((img, index) => (
+              <div key={index}>
+                <img src={img.url} alt={`Image ${index}`} className={styles.image} />
+                <p>{img.description}</p>
+              </div>
+            ))}
+            {data.equations.map((eq, index) => (
+              <div key={index}>
+                <BlockMath math={eq} />
+                <p>{data.equationDescriptions[index]}</p>
+              </div>
+            ))}
+          </section>
 
-            <section className={styles.section}>
-              <h2>Wikipedia Summary</h2>
-              <p>{data.wikiSummary}</p>
-              {data.wikiImages.map((img, index) => (
-                <div key={index}>
-                  <img src={img.URL} alt={`Wiki Image ${index}`} className={styles.image} />
-                  <p>{img.Description}</p>
-                </div>
-              ))}
-            </section>
+          <section className={styles.section}>
+            <h2>Wikipedia Summary</h2>
+            <p>{data.wikiSummary}</p>
+            {data.wikiImages.map((img, index) => (
+              <div key={index}>
+                <img src={img.URL} alt={`Wiki Image ${index}`} className={styles.image} />
+                <p>{img.Description}</p>
+              </div>
+            ))}
+          </section>
 
-            <section className={`${styles.section} ${styles.youtubeWindow}`} ref={youtubeRef}>
-              <h2>YouTube Videos</h2>
-              {data.videos.length > 0 ? (
-                data.videos.map((video, index) => (
-                  <div key={index}>
-                    <iframe
-                      src={`https://www.youtube.com/embed/${video.video_url.split('v=')[1]}`}
-                      frameBorder="0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                      title={`YouTube Video ${index}`}
-                    ></iframe>
-                    <div>{video.title}</div>
-                    <div>{video.description}</div>
-                    <a href={video.timestamp} target="_blank" rel="noopener noreferrer">Watch at timestamp</a>
-                  </div>
-                ))
-              ) : (
-                <p>No YouTube videos available for this topic.</p>
-              )}
-            </section>
-          </>
-        )}
-      </main>
+          <section className={`${styles.section} ${styles.youtubeWindow}`} ref={youtubeRef}>
+            <h2>YouTube Videos</h2>
+            {data.videos.length > 0 ? (
+              data.videos.map((video, index) => (
+                <div key={index}>
+                  <iframe
+                    src={`https://www.youtube.com/embed/${video.video_url.split('v=')[1]}`}
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    title={`YouTube Video ${index}`}
+                  ></iframe>
+                  <div>{video.title}</div>
+                  <div>{video.description}</div>
+                  <a href={video.timestamp} target="_blank" rel="noopener noreferrer">Watch at timestamp</a>
+                </div>
+              ))
+            ) : (
+              <p>No YouTube videos available for this topic.</p>
+            )}
+          </section>
+        </main>
+      )}
 
       <footer className={styles.footer}>
         <p>© ARIA 2024</p>
