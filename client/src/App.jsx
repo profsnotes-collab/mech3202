@@ -136,22 +136,16 @@ function App() {
     if (!data?.notes_response?.response) {
       return <p>No ProfsNotes data available.</p>;
     }
-
+  
     const { response } = data.notes_response;
-
+  
     return (
       <div>
+        {/* Display text first */}
         {response.Text && <p>{response.Text}</p>}
+  
+        {/* Display equations and descriptions */}
         {Object.keys(response).map((key, index) => {
-          if (key.startsWith('Image') && response[key]) {
-            const descKey = `ImageDescription${key.replace('Image', '')}`;
-            return (
-              <div key={index}>
-                <img src={response[key]} alt={`Image ${index}`} className={styles.image} />
-                {response[descKey] && <p>{response[descKey]}</p>}
-              </div>
-            );
-          }
           if (key.startsWith('Equation') && response[key]) {
             const descKey = `EquationDescription${key.replace('Equation', '')}`;
             return (
@@ -163,20 +157,37 @@ function App() {
           }
           return null;
         })}
+  
+        {/* Display images and descriptions */}
+        {Object.keys(response).map((key, index) => {
+          if (key.startsWith('Image') && response[key]) {
+            const descKey = `ImageDescription${key.replace('Image', '')}`;
+            return (
+              <div key={index}>
+                <img src={response[key]} alt={`Image ${index}`} className={styles.image} />
+                {response[descKey] && <p>{response[descKey]}</p>}
+              </div>
+            );
+          }
+          return null;
+        })}
       </div>
     );
   };
 
   const renderWikipedia = () => {
-    if (!data?.wikipedia_response) {
+    if (!data?.wikipedia_response?.results) {
       return <p>No Wikipedia data available.</p>;
     }
-
-    const { Summary, "Top Three Images": topImages } = data.wikipedia_response;
-
+  
+    const { Summary, "Top Three Images": topImages } = data.wikipedia_response.results;
+  
     return (
       <div>
+        {/* Display summary */}
         {Summary && <p>{Summary}</p>}
+  
+        {/* Display images and descriptions */}
         {topImages && Object.values(topImages).map((img, index) => (
           <div key={index}>
             <img src={img.URL} alt={`Wiki Image ${index}`} className={styles.image} />
@@ -186,12 +197,12 @@ function App() {
       </div>
     );
   };
-
+  
   const renderYouTube = () => {
     if (!data?.youtube_response?.results) {
       return <p>No YouTube data available.</p>;
     }
-
+  
     return (
       <div>
         {data.youtube_response.results.map((video, index) => {
@@ -202,7 +213,7 @@ function App() {
               <h3>{video.title || 'Untitled'}</h3>
               <p>{video.description || 'No description available'}</p>
               <iframe
-                src={`https://www.youtube.com/embed/${videoId}`}
+                src={`https://www.youtube.com/embed/${videoId}?start=${url.searchParams.get('t')}`}
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
