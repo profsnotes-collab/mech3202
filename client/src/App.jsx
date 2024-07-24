@@ -41,8 +41,11 @@ function App() {
       setSuggestions([]);
       return;
     }
-
+  
     try {
+      console.log('Sending request to:', `${baseURL}/suggestions`);
+      console.log('Request payload:', { query: researchTopic });
+  
       const response = await fetch(`${baseURL}/suggestions`, {
         method: 'POST',
         headers: {
@@ -50,15 +53,28 @@ function App() {
         },
         body: JSON.stringify({ query: researchTopic })
       });
-
-      if (response.ok) {
-        const suggestionsData = await response.json();
-        setSuggestions(suggestionsData);
+  
+      console.log('Response received:', response);
+      console.log('Response status:', response.status);
+  
+      if (!response.ok) {
+        console.error(`Error: ${response.status} - ${response.statusText}`);
+        // Reading the response body as text can help identify if it's an error page or unexpected format
+        const errorText = await response.text();
+        console.error('Error details:', errorText);
+        return; // Stop further processing
       }
+  
+      // Attempt to parse the response as JSON
+      const suggestionsData = await response.json();
+      console.log('Parsed JSON data:', suggestionsData);
+      setSuggestions(suggestionsData);
     } catch (error) {
       console.error("Error fetching suggestions:", error);
     }
   };
+  
+  
 
   const fetchData = async () => {
     setLoading(true);
