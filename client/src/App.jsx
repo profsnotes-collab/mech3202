@@ -37,6 +37,8 @@ function App() {
   };
 
   const fetchSuggestions = async () => {
+    console.log('fetchSuggestions function called');
+
     if (researchTopic.length < 2) {
       setSuggestions([]);
       return;
