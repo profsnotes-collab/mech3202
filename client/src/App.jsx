@@ -139,38 +139,44 @@ function App() {
   
     const { response } = data.notes_response;
   
-    return (
-      <div>
-        {/* Display main text */}
-        {response.Text && <p>{response.Text}</p>}
-  
-        {/* Display equations, images, and their descriptions */}
-        {Object.entries(response).map(([key, value]) => {
-          if (key.startsWith('Equation') && !key.startsWith('EquationDescription')) {
-            const index = key.replace('Equation', '');
-            const description = response[`EquationDescription${index}`];
-            return (
-              <div key={key}>
-                <BlockMath math={value} />
+    const renderContent = () => {
+      const content = [];
+      
+      if (response.Text) {
+        content.push(<p key="main-text">{response.Text}</p>);
+      }
+      
+      Object.entries(response).forEach(([key, value]) => {
+        if (key.startsWith('Equation') && !key.startsWith('EquationDescription')) {
+          const index = key.replace('Equation', '');
+          const description = response[`EquationDescription${index}`];
+          content.push(
+            <div key={`equation-${index}`}>
+              <BlockMath math={value} />
+              {description && <p>{description}</p>}
+            </div>
+          );
+        } else if (key.startsWith('Image') && !key.startsWith('ImageDescription')) {
+          const index = key.replace('Image', '');
+          const description = response[`ImageDescription${index}`];
+          if (value) {
+            content.push(
+              <div key={`image-${index}`}>
+                <img src={value} alt={`Image ${index}`} className={styles.image} onError={(e) => { e.target.style.display = 'none' }} />
                 {description && <p>{description}</p>}
               </div>
             );
-          } else if (key.startsWith('Image') && !key.startsWith('ImageDescription')) {
-            const index = key.replace('Image', '');
-            const description = response[`ImageDescription${index}`];
-            return (
-              <div key={key}>
-                <img src={value} alt={`Image ${index}`} className={styles.image} />
-                {description && <p>{description}</p>}
-              </div>
-            );
+          } else if (description) {
+            content.push(<p key={`image-desc-${index}`}>{description}</p>);
           }
-          return null;
-        })}
-      </div>
-    );
+        }
+      });
+      
+      return content;
+    };
+  
+    return <div>{renderContent()}</div>;
   };
-
 
   const renderWikipedia = () => {
     if (!data?.wikipedia_response?.results) {
