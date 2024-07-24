@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { BlockMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
-import { auth, signOut } from './firebaseConfig'; // Import Firebase config and auth functions
+import { auth, signOut } from './firebaseConfig'; 
 import { onAuthStateChanged } from 'firebase/auth';
-import styles from './index.module.css'; // Import CSS module
-import SimpleLogin from './SimpleLogin'; // Assuming this is your login component
-import jokes from './jokes'; // Assuming you have a list of jokes
+import styles from './index.module.css'; 
+import SimpleLogin from './SimpleLogin'; 
+import jokes from './jokes'; 
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
