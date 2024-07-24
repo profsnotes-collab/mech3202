@@ -12,21 +12,12 @@ function App() {
   const [researchTopic, setResearchTopic] = useState("");
   const [loading, setLoading] = useState(false);
   const [currentJoke, setCurrentJoke] = useState("");
-  const [data, setData] = useState({
-    profNotesText: "",
-    images: [],
-    wikiSummary: "",
-    wikiImages: [],
-    videos: [],
-    equations: [],
-    equationDescriptions: []
-  });
+  const [data, setData] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const youtubeRef = useRef(null);
   const baseURL = window.location.origin;
-  console.log('Base URL (window.location.origin):', baseURL);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -51,12 +42,10 @@ function App() {
     }
 
     try {
-      const token = sessionStorage.getItem('token');
       const response = await fetch(`${baseURL}/suggestions`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ query: researchTopic })
       });
@@ -72,48 +61,27 @@ function App() {
 
   const fetchData = async () => {
     setLoading(true);
-    setData({
-      profNotesText: "",
-      images: [],
-      wikiSummary: "",
-      wikiImages: [],
-      videos: [],
-      equations: [],
-      equationDescriptions: []
-    });
-
+    setData(null);
     setCurrentJoke(jokes[Math.floor(Math.random() * jokes.length)]);
 
-
     try {
-      const token = sessionStorage.getItem('token');
       const response = await fetch(`${baseURL}/query`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({ query: researchTopic }),
       });
 
       if (response.ok) {
-        const data = await response.json();
-        setData({
-          profNotesText: data.notes_response?.Text || "",
-          images: [
-            { url: data.notes_response?.Image1, description: data.notes_response?.ImageDescription1 },
-            { url: data.notes_response?.Image2, description: data.notes_response?.ImageDescription2 },
-            { url: data.notes_response?.Image3, description: data.notes_response?.ImageDescription3 }
-          ].filter(img => img.url),
-          wikiSummary: data.wikipedia_response?.Summary?.trim() || 'No summary available',
-          wikiImages: Object.values(data.wikipedia_response?.["Top Three Images"] || []),
-          videos: data.youtube_response?.results || [],
-          equations: [data.notes_response?.Equation1, data.notes_response?.Equation2, data.notes_response?.Equation3].filter(eq => eq),
-          equationDescriptions: [data.notes_response?.EquationDescription1, data.notes_response?.EquationDescription2, data.notes_response?.EquationDescription3].filter(desc => desc)
-        });
+        const responseData = await response.json();
+        setData(responseData);
+      } else {
+        throw new Error('Failed to fetch response');
       }
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error('Error fetching response:', error);
+      setData({ error: 'Error fetching data.' });
     } finally {
       setLoading(false);
     }
@@ -143,6 +111,90 @@ function App() {
         {highlightMatch(suggestion, researchTopic)}
       </div>
     ));
+  };
+
+  const renderProfsNotes = () => {
+    if (!data?.notes_response?.response) {
+      return <p>No ProfsNotes data available.</p>;
+    }
+
+    const { response } = data.notes_response;
+
+    return (
+      <div>
+        {response.Text && <p>{response.Text}</p>}
+        {Object.keys(response).map((key, index) => {
+          if (key.startsWith('Image') && response[key]) {
+            const descKey = `ImageDescription${key.replace('Image', '')}`;
+            return (
+              <div key={index}>
+                <img src={response[key]} alt={`Image ${index}`} className={styles.image} />
+                {response[descKey] && <p>{response[descKey]}</p>}
+              </div>
+            );
+          }
+          if (key.startsWith('Equation') && response[key]) {
+            const descKey = `EquationDescription${key.replace('Equation', '')}`;
+            return (
+              <div key={index}>
+                <BlockMath math={response[key]} />
+                {response[descKey] && <p>{response[descKey]}</p>}
+              </div>
+            );
+          }
+          return null;
+        })}
+      </div>
+    );
+  };
+
+  const renderWikipedia = () => {
+    if (!data?.wikipedia_response) {
+      return <p>No Wikipedia data available.</p>;
+    }
+
+    const { Summary, "Top Three Images": topImages } = data.wikipedia_response;
+
+    return (
+      <div>
+        {Summary && <p>{Summary}</p>}
+        {topImages && Object.values(topImages).map((img, index) => (
+          <div key={index}>
+            <img src={img.URL} alt={`Wiki Image ${index}`} className={styles.image} />
+            {img.Description && <p>{img.Description}</p>}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const renderYouTube = () => {
+    if (!data?.youtube_response?.results) {
+      return <p>No YouTube data available.</p>;
+    }
+
+    return (
+      <div>
+        {data.youtube_response.results.map((video, index) => {
+          const url = new URL(video.timestamp);
+          const videoId = url.searchParams.get('v');
+          return (
+            <div key={index}>
+              <h3>{video.title || 'Untitled'}</h3>
+              <p>{video.description || 'No description available'}</p>
+              <iframe
+                src={`https://www.youtube.com/embed/${videoId}`}
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                title={`YouTube Video ${index}`}
+                className={styles.youtubeVideo}
+              ></iframe>
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
   if (!isLoggedIn) {
@@ -197,52 +249,17 @@ function App() {
         <main className={styles.content}>
           <section className={styles.section}>
             <h2>Prof Notes</h2>
-            <p>{data.profNotesText}</p>
-            {data.images.map((img, index) => (
-              <div key={index}>
-                <img src={img.url} alt={`Image ${index}`} className={styles.image} />
-                <p>{img.description}</p>
-              </div>
-            ))}
-            {data.equations.map((eq, index) => (
-              <div key={index}>
-                <BlockMath math={eq} />
-                <p>{data.equationDescriptions[index]}</p>
-              </div>
-            ))}
+            {renderProfsNotes()}
           </section>
 
           <section className={styles.section}>
             <h2>Wikipedia Summary</h2>
-            <p>{data.wikiSummary}</p>
-            {data.wikiImages.map((img, index) => (
-              <div key={index}>
-                <img src={img.URL} alt={`Wiki Image ${index}`} className={styles.image} />
-                <p>{img.Description}</p>
-              </div>
-            ))}
+            {renderWikipedia()}
           </section>
 
           <section className={`${styles.section} ${styles.youtubeWindow}`} ref={youtubeRef}>
             <h2>YouTube Videos</h2>
-            {data.videos.length > 0 ? (
-              data.videos.map((video, index) => (
-                <div key={index}>
-                  <iframe
-                    src={`https://www.youtube.com/embed/${video.video_url.split('v=')[1]}`}
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    title={`YouTube Video ${index}`}
-                  ></iframe>
-                  <div>{video.title}</div>
-                  <div>{video.description}</div>
-                  <a href={video.timestamp} target="_blank" rel="noopener noreferrer">Watch at timestamp</a>
-                </div>
-              ))
-            ) : (
-              <p>No YouTube videos available for this topic.</p>
-            )}
+            {renderYouTube()}
           </section>
         </main>
       )}
