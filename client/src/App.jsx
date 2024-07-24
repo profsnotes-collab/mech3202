@@ -1,44 +1,43 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { BlockMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
-import { auth } from './firebaseConfig';
-import { signOut, onAuthStateChanged } from 'firebase/auth';
-import styles from './index.module.css';
-import innovation from './assets/innovation.png';
-import menuIcon from './assets/menu.png';
-import userIcon from './assets/user.png';
-import SimpleLogin from './SimpleLogin';
-import jokes from './jokes';
+import { auth, signOut } from './firebaseConfig'; // Import Firebase config and auth functions
+import { onAuthStateChanged } from 'firebase/auth';
+import styles from './index.module.css'; // Import CSS module
+import SimpleLogin from './SimpleLogin'; // Assuming this is your login component
+import jokes from './jokes'; // Assuming you have a list of jokes
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [researchTopic, setResearchTopic] = useState("");
-  const [wikiSummary, setWikiSummary] = useState("");
-  const [profNotesText, setProfNotesText] = useState("");
-  const [images, setImages] = useState([]);
-  const [wikiImages, setWikiImages] = useState([]);
-  const [videos, setVideos] = useState([]);
-  const [equations, setEquations] = useState([]);
-  const [equationDescriptions, setEquationDescriptions] = useState([]);
   const [loading, setLoading] = useState(false);
-  const youtubeRef = useRef(null);
+  const [currentJoke, setCurrentJoke] = useState("");
+  const [data, setData] = useState({
+    profNotesText: "",
+    images: [],
+    wikiSummary: "",
+    wikiImages: [],
+    videos: [],
+    equations: [],
+    equationDescriptions: []
+  });
+  const [suggestions, setSuggestions] = useState([]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [currentJoke, setCurrentJoke] = useState("");
-  const [suggestions, setSuggestions] = useState([]);
+  const youtubeRef = useRef(null);
+  const baseURL = window.location.origin;
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setIsLoggedIn(!!user);
     });
-
     return unsubscribe;
   }, []);
 
   const handleLogout = () => {
     signOut(auth).then(() => {
       setIsLoggedIn(false);
-      sessionStorage.removeItem('token'); // Clear token on logout
+      sessionStorage.removeItem('token');
     }).catch((error) => {
       console.error("Error signing out:", error);
     });
@@ -52,7 +51,7 @@ function App() {
 
     try {
       const token = sessionStorage.getItem('token');
-      const response = await fetch('https://api-gateway-dot-profsnotes.appspot.com/suggestions', {
+      const response = await fetch(`${baseURL}/suggestions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -61,43 +60,30 @@ function App() {
         body: JSON.stringify({ query: researchTopic })
       });
 
-      const suggestionsData = await response.json();
-      console.log('Suggestions:', suggestionsData);
-      setSuggestions(suggestionsData);
+      if (response.ok) {
+        const suggestionsData = await response.json();
+        setSuggestions(suggestionsData);
+      }
     } catch (error) {
       console.error("Error fetching suggestions:", error);
     }
   };
 
-  const fetchEquationsAndText = async () => {
-    try {
-      const token = sessionStorage.getItem('token');
-      const response = await fetch("https://api-gateway-dot-profsnotes.appspot.com/query", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({ query: researchTopic }),
-      });
-      const data = await response.json();
-      setProfNotesText(data.notes_response?.Text || "");
-      setImages([
-        { url: data.notes_response?.Image1, description: data.notes_response?.ImageDescription1 },
-        { url: data.notes_response?.Image2, description: data.notes_response?.ImageDescription2 },
-        { url: data.notes_response?.Image3, description: data.notes_response?.ImageDescription3 },
-      ].filter(img => img.url));
-      setEquations([data.notes_response?.Equation1, data.notes_response?.Equation2, data.notes_response?.Equation3].filter(eq => eq));
-      setEquationDescriptions([data.notes_response?.EquationDescription1, data.notes_response?.EquationDescription2, data.notes_response?.EquationDescription3].filter(desc => desc));
-    } catch (error) {
-      console.error("Error fetching equations and text:", error);
-    }
-  };
+  const fetchData = async () => {
+    setLoading(true);
+    setData({
+      profNotesText: "",
+      images: [],
+      wikiSummary: "",
+      wikiImages: [],
+      videos: [],
+      equations: [],
+      equationDescriptions: []
+    });
 
-  const fetchWikiSummary = async () => {
     try {
       const token = sessionStorage.getItem('token');
-      const response = await fetch("https://api-gateway-dot-profsnotes.appspot.com/query", {
+      const response = await fetch(`${baseURL}/query`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -105,81 +91,54 @@ function App() {
         },
         body: JSON.stringify({ query: researchTopic }),
       });
-      const data = await response.json();
-      if (data.wikipedia_response?.error) {
-        setWikiSummary('No summary available');
-        setWikiImages([]);
-      } else {
-        setWikiSummary(data.wikipedia_response?.Summary?.trim() || 'No summary available');
-        setWikiImages(Object.values(data.wikipedia_response?.["Top Three Images"] || []));
+
+      if (response.ok) {
+        const data = await response.json();
+        setData({
+          profNotesText: data.notes_response?.Text || "",
+          images: [
+            { url: data.notes_response?.Image1, description: data.notes_response?.ImageDescription1 },
+            { url: data.notes_response?.Image2, description: data.notes_response?.ImageDescription2 },
+            { url: data.notes_response?.Image3, description: data.notes_response?.ImageDescription3 }
+          ].filter(img => img.url),
+          wikiSummary: data.wikipedia_response?.Summary?.trim() || 'No summary available',
+          wikiImages: Object.values(data.wikipedia_response?.["Top Three Images"] || []),
+          videos: data.youtube_response?.results || [],
+          equations: [data.notes_response?.Equation1, data.notes_response?.Equation2, data.notes_response?.Equation3].filter(eq => eq),
+          equationDescriptions: [data.notes_response?.EquationDescription1, data.notes_response?.EquationDescription2, data.notes_response?.EquationDescription3].filter(desc => desc)
+        });
       }
     } catch (error) {
-      console.error("Error fetching Wikipedia summary:", error);
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const fetchYouTubeVideo = async () => {
-    try {
-      const token = sessionStorage.getItem('token');
-      const response = await fetch("https://api-gateway-dot-profsnotes.appspot.com/query", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({ query: researchTopic }),
-      });
-      const data = await response.json();
-      console.log("YouTube API response:", data);
-      setVideos(data.youtube_response?.results || []);
-    } catch (error) {
-      console.error("Error fetching YouTube videos:", error);
-    }
+  const handleSearch = (e) => {
+    e.preventDefault();
+    fetchData();
   };
 
-  const handleSearch = async () => {
-    setWikiSummary("");
-    setProfNotesText("");
-    setImages([]);
-    setWikiImages([]);
-    setEquations([]);
-    setEquationDescriptions([]);
-    setVideos([]);
-    setLoading(true);
-    setCurrentJoke(jokes[Math.floor(Math.random() * jokes.length)]);
-    const promises = [fetchEquationsAndText(), fetchWikiSummary(), fetchYouTubeVideo()];
-    await Promise.all(promises);
-    setLoading(false);
-    if (youtubeRef.current) {
-      youtubeRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
+  const highlightMatch = (text, query) => {
+    const startIndex = text.toLowerCase().indexOf(query.toLowerCase());
+    if (startIndex === -1) return text;
+    const endIndex = startIndex + query.length;
+    return (
+      <>
+        {text.slice(0, startIndex)}
+        <strong>{text.slice(startIndex, endIndex)}</strong>
+        {text.slice(endIndex)}
+      </>
+    );
   };
 
-  const scrollToYoutube = () => {
-    if (youtubeRef.current) {
-      youtubeRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  const toggleMenu = () => {
-    setMenuOpen(!menuOpen);
-  };
-
-  const toggleUserMenu = () => {
-    setUserMenuOpen(!userMenuOpen);
-  };
-
-  const sanitizeLatex = (latex) => {
-    return latex && latex.trim() ? latex : "\\text{Invalid LaTeX}";
-  };
-
-  const renderEquation = (latex) => {
-    try {
-      return <BlockMath math={latex} />;
-    } catch (error) {
-      console.error("Error rendering LaTeX:", error);
-      return <span className={styles.invalidLatex}>Invalid LaTeX</span>;
-    }
+  const displaySuggestions = (suggestions) => {
+    return suggestions.map((suggestion, index) => (
+      <div key={index} className={styles.suggestionItem} onClick={() => setResearchTopic(suggestion)}>
+        {highlightMatch(suggestion, researchTopic)}
+      </div>
+    ));
   };
 
   if (!isLoggedIn) {
@@ -187,134 +146,106 @@ function App() {
   }
 
   return (
-    <main className={styles.main}>
-      <div className={styles.header}>
-        <div className={styles.iconContainer} onClick={toggleMenu}>
-          <img src={menuIcon} alt="Menu" className={styles.menuIcon} />
-        </div>
-        <div className={styles.titleContainer}>
-          <img src={innovation} alt="App Logo" className={styles.appLogo} />
-          <h3>Professor Notes AI Assistant</h3>
-        </div>
-        <div className={styles.userSection} onClick={toggleUserMenu}>
-          <img src={userIcon} alt="User" className={styles.userIcon} />
-          <span className={styles.userName}>User</span>
+    <div className={styles.app}>
+      <header className={styles.header}>
+        <div className={styles.menuToggle} onClick={() => setMenuOpen(!menuOpen)}>Menu</div>
+        <div className={styles.title}>Professor Notes AI Assistant</div>
+        <div className={styles.userSection} onClick={() => setUserMenuOpen(!userMenuOpen)}>
+          User
           {userMenuOpen && (
             <div className={styles.userMenu}>
-              <button onClick={handleLogout} className={styles.logoutButton}>Logout</button>
+              <button className={styles.logoutButton} onClick={handleLogout}>Logout</button>
             </div>
           )}
         </div>
-      </div>
+      </header>
+
       {menuOpen && (
-        <div className={styles.menu}>
-          <button onClick={scrollToYoutube}>YouTube Video</button>
+        <nav className={styles.menu}>
+          <button onClick={() => youtubeRef.current.scrollIntoView({ behavior: 'smooth' })}>YouTube Video</button>
           <button>Settings</button>
-          <button onClick={handleLogout} className={styles.logoutButton}>Logout</button>
-        </div>
+          <button className={styles.logoutButton} onClick={handleLogout}>Logout</button>
+        </nav>
       )}
 
-      <form className={styles.form} onSubmit={(e) => { e.preventDefault(); handleSearch(); }}>
+      <form className={styles.searchForm} onSubmit={handleSearch}>
         <input
           type="text"
-          name="research-topic"
-          placeholder="Enter your research topic"
-          onChange={(e) => {
-            setResearchTopic(e.target.value);
-            fetchSuggestions();
-          }}
-          className={styles.input}
           value={researchTopic}
-          autoComplete="off"
+          onChange={(e) => setResearchTopic(e.target.value)}
+          onKeyUp={fetchSuggestions}
+          placeholder="Enter your research topic"
         />
-        <button type="submit" className={styles.searchButton}>Search</button>
+        <button type="submit">Search</button>
         {suggestions.length > 0 && (
           <div className={styles.suggestions}>
-            {suggestions.map((suggestion, index) => (
-              <div
-                key={index}
-                className={styles.suggestionItem}
-                onClick={() => {
-                  setResearchTopic(suggestion);
-                  setSuggestions([]); // Hide suggestions after selecting one
-                  handleSearch();
-                }}
-              >
-                {suggestion}
-              </div>
-            ))}
+            {displaySuggestions(suggestions)}
           </div>
         )}
       </form>
 
-      {loading && (
-        <div className={styles.loaderContainer}>
-          <div className={styles.loader}></div>
-          <p className={styles.joke}>{currentJoke}</p>
-        </div>
-      )}
-
-      {!loading && (
-        <div className={styles.content}>
-          <div className={`${styles.window} ${styles.hoverEffect}`}>
-            <h4>Prof Notes Text:</h4>
-            <p>{profNotesText}</p>
-            {equations.length > 0 ? (
-              equations.map((eq, index) => (
-                <React.Fragment key={index}>
-                  {renderEquation(sanitizeLatex(eq))}
-                  <p>{equationDescriptions[index]}</p>
-                </React.Fragment>
-              ))
-            ) : (
-              images.map((img, index) => (
+      <main className={styles.content}>
+        {loading ? (
+          <p>Loading...</p>
+        ) : (
+          <>
+            <section className={styles.section}>
+              <h2>Prof Notes</h2>
+              <p>{data.profNotesText}</p>
+              {data.images.map((img, index) => (
                 <div key={index}>
-                  <img src={img.url} alt={`Prof Notes Image ${index}`} className={styles.image} />
+                  <img src={img.url} alt={`Image ${index}`} className={styles.image} />
                   <p>{img.description}</p>
                 </div>
-              ))
-            )}
-          </div>
-          <div className={`${styles.window} ${styles.hoverEffect}`}>
-            <h4>Wikipedia Summary:</h4>
-            <p>{wikiSummary}</p>
-            {wikiImages.map((img, index) => (
-              <div key={index}>
-                <img src={img.URL} alt={`Wiki Image ${index}`} className={styles.image} />
-                <p>{img.Description}</p>
-                <p>{img.Caption}</p>
-              </div>
-            ))}
-          </div>
-          <div className={`${styles.window} ${styles.hoverEffect} ${styles.youtubeWindow}`} ref={youtubeRef}>
-            <h4>YouTube Videos:</h4>
-            {videos.length > 0 ? (
-              videos.map((video, index) => (
-                <div key={index} className={styles.youtubeContainer}>
-                  <iframe
-                    src={`https://www.youtube.com/embed/${video.video_url.split('v=')[1]}`}
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    title={`YouTube Video ${index}`}
-                  ></iframe>
-                  <div className={styles.youtubeVideoTitle}>{video.title}</div>
-                  <div className={styles.youtubeVideoDescription}>{video.description}</div>
-                  <div className={styles.youtubeVideoText}>{video.text}</div>
-                  <a href={video.timestamp} target="_blank" rel="noopener noreferrer" className={styles.youtubeTimestamp}>Watch at timestamp</a>
+              ))}
+              {data.equations.map((eq, index) => (
+                <div key={index}>
+                  <BlockMath math={eq} />
+                  <p>{data.equationDescriptions[index]}</p>
                 </div>
-              ))
-            ) : (
-              <p>No YouTube videos available for this topic.</p>
-            )}
-          </div>
-        </div>
-      )}
+              ))}
+            </section>
+
+            <section className={styles.section}>
+              <h2>Wikipedia Summary</h2>
+              <p>{data.wikiSummary}</p>
+              {data.wikiImages.map((img, index) => (
+                <div key={index}>
+                  <img src={img.URL} alt={`Wiki Image ${index}`} className={styles.image} />
+                  <p>{img.Description}</p>
+                </div>
+              ))}
+            </section>
+
+            <section className={`${styles.section} ${styles.youtubeWindow}`} ref={youtubeRef}>
+              <h2>YouTube Videos</h2>
+              {data.videos.length > 0 ? (
+                data.videos.map((video, index) => (
+                  <div key={index}>
+                    <iframe
+                      src={`https://www.youtube.com/embed/${video.video_url.split('v=')[1]}`}
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      title={`YouTube Video ${index}`}
+                    ></iframe>
+                    <div>{video.title}</div>
+                    <div>{video.description}</div>
+                    <a href={video.timestamp} target="_blank" rel="noopener noreferrer">Watch at timestamp</a>
+                  </div>
+                ))
+              ) : (
+                <p>No YouTube videos available for this topic.</p>
+              )}
+            </section>
+          </>
+        )}
+      </main>
 
       <footer className={styles.footer}>
         <p>© ARIA 2024</p>
       </footer>
-    </main>
+    </div>
   );
 }
 

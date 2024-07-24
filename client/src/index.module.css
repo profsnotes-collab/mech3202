@@ -1,3 +1,10 @@
+/* index.module.css */
+
+.app {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+}
+
 .loaderContainer {
   display: flex;
   flex-direction: column;
@@ -11,13 +18,13 @@
 }
 
 .loader {
-  border: 8px solid #f3f3f3; /* Light grey */
-  border-top: 8px solid #10a37f; /* Green */
+  border: 8px solid #f3f3f3;
+  border-top: 8px solid #10a37f;
   border-radius: 50%;
   width: 60px;
   height: 60px;
   animation: spin 1s linear infinite;
-  margin-top: 20px; /* Add margin to move the spinner down */
+  margin-top: 20px;
 }
 
 .joke {
@@ -27,41 +34,28 @@
   text-align: center;
 }
 
-
-
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
 
-.main,
-.main input {
-  font-size: 16px;
-  line-height: 24px;
-  color: #353740;
-  font-family: "ColfaxAI", Helvetica, sans-serif;
-}
-
-.main {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 20px;
-  position: relative;
+.header, .main, .footer {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 100%;
-  padding: 0 20px;
+  padding: 10px 20px;
+  border-bottom: 1px solid #ccc;
 }
 
-.titleContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.title {
+  font-size: 24px;
+  font-weight: bold;
 }
 
 .iconContainer {
@@ -75,22 +69,8 @@
   cursor: pointer;
 }
 
-.appLogo {
-  width: 34px;
-  margin-bottom: 8px;
-}
-
-.menuIcon,
-.userIcon {
+.menuIcon, .userIcon {
   width: 24px;
-}
-
-.header h3 {
-  font-size: 32px;
-  line-height: 40px;
-  font-weight: bold;
-  color: #202123;
-  margin: 0;
 }
 
 .userSection {
@@ -99,19 +79,11 @@
   background-color: #f0f0f0;
   border-radius: 20px;
   padding: 8px 12px;
+  position: relative;
+  cursor: pointer;
 }
 
-.userIcon {
-  width: 24px;
-  margin-right: 8px;
-}
-
-.userName {
-  font-size: 16px;
-  color: #202123;
-}
-
-.menu {
+.userMenu {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -120,62 +92,26 @@
   border-radius: 8px;
   padding: 16px;
   position: absolute;
-  top: 60px;
-  left: 20px;
+  top: 50px;
+  right: 0;
   z-index: 1000;
 }
 
-.menu button {
-  padding: 8px 16px;
+.logoutButton {
+  background-color: #28a745;
+  color: white;
+  padding: 10px;
   border: none;
-  background-color: #10a37f;
-  color: #fff;
   border-radius: 4px;
   cursor: pointer;
-  margin-bottom: 8px;
-  width: 100%;
   text-align: left;
-}
-
-.content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   width: 100%;
-  max-width: 900px;
-  margin: 20px 0;
 }
 
-.window {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  border: 1px solid #10a37f;
-  border-radius: 8px;
-  padding: 16px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  background-color: #f9f9f9;
-  transition: background-color 0.3s;
-  margin-bottom: 20px;
-}
-
-.window:hover {
-  background-color: #f0f0f0;
-}
-
-.image {
-  margin-top: 16px;
-  width: 100%;
-  max-width: 500px;
-  height: auto;
-}
-
-.form {
+.searchForm {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100%;
-  max-width: 600px;
   margin: 20px 0;
 }
 
@@ -188,25 +124,75 @@
   outline-color: #10a37f;
 }
 
-.searchButton {
+.searchButton, .button {
   padding: 12px 24px;
-  color: #ffffff !important;
+  color: #ffffff;
   background-color: #10a37f;
   border: none;
   border-radius: 4px;
-  text-align: center;
   cursor: pointer;
 }
 
-.button {
-  padding: 8px 16px;
-  color: #fff;
-  background-color: #10a37f;
-  border: none;
+.suggestions {
+  position: absolute;
+  top: 52px;
+  left: 0;
+  right: 0;
+  border: 1px solid #ccc;
+  max-height: 150px;
+  overflow-y: auto;
+  background-color: white;
+  z-index: 1000;
   border-radius: 4px;
-  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.suggestionItem {
+  padding: 10px;
   cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background-color 0.3s;
+}
+
+.suggestionItem:hover {
+  background-color: #f0f0f0;
+}
+
+.suggestionItem:last-child {
+  border-bottom: none;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 900px;
+  margin: 20px 0;
+}
+
+.section, .window {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  border: 1px solid #10a37f;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  background-color: #f9f9f9;
+  margin-bottom: 20px;
+  transition: background-color 0.3s;
+}
+
+.window:hover {
+  background-color: #f0f0f0;
+}
+
+.image {
   margin-top: 16px;
+  width: 100%;
+  max-width: 500px;
+  height: auto;
 }
 
 .youtubeWindow {
@@ -259,119 +245,4 @@
   height: 100%;
   z-index: -1;
   object-fit: cover;
-}
-
-.logoutButton {
-  background-color: #28a745; /* Green color */
-  color: white;
-  padding: 10px;
-}
-
-.userSection {
-  display: flex;
-  align-items: center;
-  background-color: #f0f0f0;
-  border-radius: 20px;
-  padding: 8px 12px;
-  position: relative; /* Add this for positioning the dropdown */
-  cursor: pointer;
-}
-
-.userIcon {
-  width: 24px;
-  margin-right: 8px;
-}
-
-.userName {
-  font-size: 16px;
-  color: #202123;
-}
-
-.userMenu {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  background-color: #ffffff;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-  padding: 16px;
-  position: absolute;
-  top: 50px; /* Adjust positioning */
-  right: 0;  /* Align with the right side of the user section */
-  z-index: 1000;
-}
-
-.userMenu button {
-  padding: 8px 16px;
-  border: none;
-  background-color: #10a37f;
-  color: #fff;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-bottom: 8px;
-  width: 100%;
-  text-align: left;
-}
-
-.logoutButton {
-  background-color: #28a745; /* Green color */
-  color: white;
-  padding: 10px;
-}
-.form {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  max-width: 600px;
-  margin: 20px 0;
-  position: relative; /* To position the suggestions relative to this container */
-}
-
-.input {
-  width: 100%;
-  padding: 12px 16px;
-  border: 1px solid #10a37f;
-  border-radius: 4px;
-  margin-bottom: 8px;
-  outline-color: #10a37f;
-}
-
-.searchButton {
-  padding: 12px 24px;
-  color: #ffffff !important;
-  background-color: #10a37f;
-  border: none;
-  border-radius: 4px;
-  text-align: center;
-  cursor: pointer;
-}
-
-.suggestions {
-  position: absolute;
-  top: 52px; /* Adjust based on the height of your input field */
-  left: 0;
-  right: 0;
-  border: 1px solid #ccc;
-  max-height: 150px;
-  overflow-y: auto;
-  background-color: white;
-  z-index: 1000; /* Ensure it appears above other elements */
-  border-radius: 4px; /* Rounded corners */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for better visibility */
-}
-
-.suggestionItem {
-  padding: 10px;
-  cursor: pointer;
-  border-bottom: 1px solid #f0f0f0;
-  transition: background-color 0.3s;
-}
-
-.suggestionItem:hover {
-  background-color: #f0f0f0;
-}
-
-.suggestionItem:last-child {
-  border-bottom: none; /* Remove border from the last item */
 }
