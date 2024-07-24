@@ -141,17 +141,20 @@ function App() {
   
     return (
       <div>
-        {/* Display text first */}
+        {/* Display main text */}
         {response.Text && <p>{response.Text}</p>}
   
         {/* Display equations and descriptions */}
-        {Object.keys(response).map((key, index) => {
-          if (key.startsWith('Equation') && response[key]) {
-            const descKey = `EquationDescription${key.replace('Equation', '')}`;
+        {Object.keys(response).filter(key => key.startsWith('Equation')).sort().map((key, index) => {
+          const equationIndex = key.replace('Equation', '');
+          const equation = response[key];
+          const equationDesc = response[`EquationDescription${equationIndex}`];
+  
+          if (equation || equationDesc) {
             return (
-              <div key={index}>
-                <BlockMath math={response[key]} />
-                {response[descKey] && <p>{response[descKey]}</p>}
+              <div key={`equation-${index}`}>
+                {equation && <BlockMath math={equation} />}
+                {equationDesc && <p>{equationDesc}</p>}
               </div>
             );
           }
@@ -159,13 +162,16 @@ function App() {
         })}
   
         {/* Display images and descriptions */}
-        {Object.keys(response).map((key, index) => {
-          if (key.startsWith('Image') && response[key]) {
-            const descKey = `ImageDescription${key.replace('Image', '')}`;
+        {Object.keys(response).filter(key => key.startsWith('Image')).sort().map((key, index) => {
+          const imageIndex = key.replace('Image', '');
+          const imageSrc = response[key];
+          const imageDesc = response[`ImageDescription${imageIndex}`];
+  
+          if (imageSrc || imageDesc) {
             return (
-              <div key={index}>
-                <img src={response[key]} alt={`Image ${index}`} className={styles.image} />
-                {response[descKey] && <p>{response[descKey]}</p>}
+              <div key={`image-${index}`}>
+                {imageSrc && <img src={imageSrc} alt={`Image ${imageIndex}`} className={styles.image} />}
+                {imageDesc && <p>{imageDesc}</p>}
               </div>
             );
           }
@@ -174,6 +180,7 @@ function App() {
       </div>
     );
   };
+  
 
   const renderWikipedia = () => {
     if (!data?.wikipedia_response?.results) {
