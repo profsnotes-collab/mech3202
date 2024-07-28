@@ -10,6 +10,8 @@ import jokes from './jokes';
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [token, setToken] = useState(null);
+  const [creditsUsed, setCreditsUsed] = useState(null);
+  const [remainingCredits, setRemainingCredits] = useState(null);
   const [researchTopic, setResearchTopic] = useState("");
   const [loading, setLoading] = useState(false);
   const [currentJoke, setCurrentJoke] = useState("");
@@ -21,27 +23,32 @@ function App() {
 
   const baseURL = 'https://profsnotes.uk.r.appspot.com';
 
+  const handleLogin = async (idToken) => {
+    try {
+      const response = await fetch(`${baseURL}/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ idToken })
+      });
+
+      if (!response.ok) {
+        throw new Error('Login failed');
+      }
+
+      const data = await response.json();
+      setToken(data.token);
+      sessionStorage.setItem('token', data.token);
+      setIsLoggedIn(true);
+    } catch (error) {
+      console.error('Login error:', error);
+    }
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setIsLoggedIn(true);
-        user.getIdToken().then(idToken => {
-          // Exchange Firebase token for your custom JWT
-          fetch(`${baseURL}/login`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ idToken })
-          })
-          .then(response => response.json())
-          .then(data => {
-            setToken(data.token);
-            sessionStorage.setItem('token', data.token);
-          })
-          .catch(error => console.error('Error:', error));
-        });
-      } else {
+      if (!user) {
         setIsLoggedIn(false);
         setToken(null);
         sessionStorage.removeItem('token');
@@ -50,6 +57,32 @@ function App() {
 
     return () => unsubscribe();
   }, []);
+  
+  const fetchUserCredits = async () => {
+    try {
+      const response = await fetch(`${baseURL}/user_credits`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch user credits');
+      }
+
+      const data = await response.json();
+      setUserCredits(data.credits);
+    } catch (error) {
+      console.error('Error fetching user credits:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (isLoggedIn && token) {
+      fetchUserCredits();
+    }
+  }, [isLoggedIn, token]);
 
   const handleLogout = () => {
     signOut(auth).then(() => {
@@ -76,9 +109,7 @@ function App() {
       const response = await fetch(`${baseURL}/suggestions`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+          'Content-Type': 'application/json'        },
         body: JSON.stringify({ query: researchTopic })
       });
   
@@ -100,8 +131,6 @@ function App() {
     }
   };
   
-  
-
   const fetchData = async () => {
     setLoading(true);
     setData(null);
@@ -120,6 +149,8 @@ function App() {
       if (response.ok) {
         const responseData = await response.json();
         setData(responseData);
+        setCreditsUsed(responseData.credits_used);
+        setRemainingCredits(responseData.remaining_credits);
       } else {
         throw new Error('Failed to fetch response');
       }
@@ -156,6 +187,10 @@ function App() {
       </div>
     ));
   };
+
+  if (!isLoggedIn) {
+    return <SimpleLogin onLogin={handleLogin} />;
+  }
 
   const renderProfsNotes = () => {
     if (!data?.notes_response?.response) {
@@ -273,7 +308,15 @@ function App() {
           )}
         </div>
       </header>
-
+  
+      {/* Add the credit display here, right after the header */}
+      {isLoggedIn && remainingCredits !== null && (
+        <div className={styles.creditDisplay}>
+          Remaining Credits: {remainingCredits}
+          {creditsUsed !== null && ` (Last query used: ${creditsUsed})`}
+        </div>
+      )}
+  
       {menuOpen && (
         <nav className={styles.menu}>
           <button onClick={() => youtubeRef.current.scrollIntoView({ behavior: 'smooth' })}>YouTube Video</button>
@@ -281,7 +324,7 @@ function App() {
           <button className={styles.logoutButton} onClick={handleLogout}>Logout</button>
         </nav>
       )}
-
+  
       <form className={styles.searchForm} onSubmit={handleSearch}>
         <input
           type="text"
@@ -297,7 +340,7 @@ function App() {
           </div>
         )}
       </form>
-
+  
       {loading ? (
         <div className={styles.loaderContainer}>
           <div className={styles.loader}></div>
@@ -309,24 +352,23 @@ function App() {
             <h2>Prof Notes</h2>
             {renderProfsNotes()}
           </section>
-
+  
           <section className={styles.section}>
             <h2>Wikipedia Summary</h2>
             {renderWikipedia()}
           </section>
-
+  
           <section className={`${styles.section} ${styles.youtubeWindow}`} ref={youtubeRef}>
             <h2>YouTube Videos</h2>
             {renderYouTube()}
           </section>
         </main>
       )}
-
+  
       <footer className={styles.footer}>
         <p>© ARIA 2024</p>
       </footer>
     </div>
   );
 }
-
 export default App;

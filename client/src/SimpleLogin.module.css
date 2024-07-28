@@ -23,6 +23,14 @@
     max-width: 300px;
   }
   
+  .creditDisplay {
+    padding: 10px;
+    background-color: #ff00f2;
+    border-radius: 5px;
+    margin: 10px 0;
+    font-weight: bold;
+  }
+
   .input {
     padding: 10px;
     margin-bottom: 15px;

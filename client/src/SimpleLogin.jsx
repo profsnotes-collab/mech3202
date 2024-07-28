@@ -11,8 +11,9 @@ const SimpleLogin = ({ onLogin }) => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      onLogin(true);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const idToken = await userCredential.user.getIdToken();
+      onLogin(idToken);  
     } catch (error) {
       setError('Invalid credentials');
     }
