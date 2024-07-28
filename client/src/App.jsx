@@ -167,8 +167,14 @@ function App() {
         return;
       }
   
+      if (!researchTopic.trim()) {
+        console.error('No query provided');
+        setData({ error: 'Please enter a research topic.' });
+        return;
+      }
+  
       console.log('Sending request to:', `${baseURL}/query`);
-      console.log('Request payload:', { query: researchTopic });
+      console.log('Request payload:', { query: researchTopic, token });
       console.log('Token:', token ? `${token.substring(0, 10)}...` : 'No token');
   
       const response = await fetch(`${baseURL}/query`, {
@@ -177,7 +183,7 @@ function App() {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify({ query: researchTopic }),
+        body: JSON.stringify({ query: researchTopic, token }),
       });
   
       console.log('Response status:', response.status);
