@@ -41,6 +41,7 @@ function App() {
       setToken(data.token);
       sessionStorage.setItem('token', data.token);
       setIsLoggedIn(true);
+      setRemainingCredits(data.credits); // Set initial credits after login
     } catch (error) {
       console.error('Login error:', error);
     }
@@ -52,27 +53,44 @@ function App() {
         setIsLoggedIn(false);
         setToken(null);
         sessionStorage.removeItem('token');
+      } else {
+        // User is signed in, retrieve the token from session storage
+        const storedToken = sessionStorage.getItem('token');
+        if (storedToken) {
+          setToken(storedToken);
+          setIsLoggedIn(true);
+          fetchUserCredits(storedToken); // Fetch credits when user is authenticated
+        }
       }
     });
 
     return () => unsubscribe();
   }, []);
-  
-  const fetchUserCredits = async () => {
+
+  const fetchUserCredits = async (currentToken) => {
     try {
+      console.log('Fetching user credits...');
+      console.log('Token:', currentToken ? `${currentToken.substring(0, 10)}...` : 'No token');
+
       const response = await fetch(`${baseURL}/user_credits`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${currentToken}`,
+          'Content-Type': 'application/json'
         }
       });
 
+      console.log('Response status:', response.status);
+
       if (!response.ok) {
-        throw new Error('Failed to fetch user credits');
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        throw new Error(`Failed to fetch user credits: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
-      setUserCredits(data.credits);
+      console.log('User credits data:', data);
+      setRemainingCredits(data.credits);
     } catch (error) {
       console.error('Error fetching user credits:', error);
     }
@@ -80,9 +98,15 @@ function App() {
 
   useEffect(() => {
     if (isLoggedIn && token) {
-      fetchUserCredits();
+      // Only fetch credits if we don't already have them
+      if (remainingCredits === null) {
+        fetchUserCredits(token);
+      }
+    } else {
+      // Reset credits when logged out
+      setRemainingCredits(null);
     }
-  }, [isLoggedIn, token]);
+  }, [isLoggedIn, token, remainingCredits]);
 
   const handleLogout = () => {
     signOut(auth).then(() => {
@@ -309,7 +333,6 @@ function App() {
         </div>
       </header>
   
-      {/* Add the credit display here, right after the header */}
       {isLoggedIn && remainingCredits !== null && (
         <div className={styles.creditDisplay}>
           Remaining Credits: {remainingCredits}
