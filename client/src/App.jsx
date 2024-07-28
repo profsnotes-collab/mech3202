@@ -159,8 +159,18 @@ function App() {
     setLoading(true);
     setData(null);
     setCurrentJoke(jokes[Math.floor(Math.random() * jokes.length)]);
-
+  
     try {
+      if (!token) {
+        console.error('No token available');
+        setData({ error: 'No authentication token available. Please log in again.' });
+        return;
+      }
+  
+      console.log('Sending request to:', `${baseURL}/query`);
+      console.log('Request payload:', { query: researchTopic });
+      console.log('Token:', token ? `${token.substring(0, 10)}...` : 'No token');
+  
       const response = await fetch(`${baseURL}/query`, {
         method: "POST",
         headers: {
@@ -169,18 +179,24 @@ function App() {
         },
         body: JSON.stringify({ query: researchTopic }),
       });
-
-      if (response.ok) {
-        const responseData = await response.json();
-        setData(responseData);
-        setCreditsUsed(responseData.credits_used);
-        setRemainingCredits(responseData.remaining_credits);
-      } else {
-        throw new Error('Failed to fetch response');
+  
+      console.log('Response status:', response.status);
+  
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        throw new Error(`Failed to fetch response: ${response.status} ${response.statusText}`);
       }
+  
+      const responseData = await response.json();
+      console.log('Response data:', responseData);
+  
+      setData(responseData);
+      setCreditsUsed(responseData.credits_used);
+      setRemainingCredits(responseData.remaining_credits);
     } catch (error) {
       console.error('Error fetching response:', error);
-      setData({ error: 'Error fetching data.' });
+      setData({ error: 'Error fetching data: ' + error.message });
     } finally {
       setLoading(false);
     }
