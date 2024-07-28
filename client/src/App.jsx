@@ -9,6 +9,7 @@ import jokes from './jokes';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [token, setToken] = useState(null);
   const [researchTopic, setResearchTopic] = useState("");
   const [loading, setLoading] = useState(false);
   const [currentJoke, setCurrentJoke] = useState("");
@@ -18,18 +19,42 @@ function App() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const youtubeRef = useRef(null);
 
-  const baseURL = 'https://profsnotes-ai.nn.r.appspot.com';
+  const baseURL = 'https://profsnotes.uk.r.appspot.com';
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setIsLoggedIn(!!user);
+      if (user) {
+        setIsLoggedIn(true);
+        user.getIdToken().then(idToken => {
+          // Exchange Firebase token for your custom JWT
+          fetch(`${baseURL}/login`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ idToken })
+          })
+          .then(response => response.json())
+          .then(data => {
+            setToken(data.token);
+            sessionStorage.setItem('token', data.token);
+          })
+          .catch(error => console.error('Error:', error));
+        });
+      } else {
+        setIsLoggedIn(false);
+        setToken(null);
+        sessionStorage.removeItem('token');
+      }
     });
-    return unsubscribe;
+
+    return () => unsubscribe();
   }, []);
 
   const handleLogout = () => {
     signOut(auth).then(() => {
       setIsLoggedIn(false);
+      setToken(null);
       sessionStorage.removeItem('token');
     }).catch((error) => {
       console.error("Error signing out:", error);
@@ -47,11 +72,12 @@ function App() {
     try {
       console.log('Sending request to:', `${baseURL}/suggestions`);
       console.log('Request payload:', { query: researchTopic });
-  
+        
       const response = await fetch(`${baseURL}/suggestions`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ query: researchTopic })
       });
@@ -61,13 +87,11 @@ function App() {
   
       if (!response.ok) {
         console.error(`Error: ${response.status} - ${response.statusText}`);
-        // Reading the response body as text can help identify if it's an error page or unexpected format
         const errorText = await response.text();
         console.error('Error details:', errorText);
-        return; // Stop further processing
+        return; 
       }
   
-      // Attempt to parse the response as JSON
       const suggestionsData = await response.json();
       console.log('Parsed JSON data:', suggestionsData);
       setSuggestions(suggestionsData);
@@ -87,7 +111,8 @@ function App() {
       const response = await fetch(`${baseURL}/query`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify({ query: researchTopic }),
       });
