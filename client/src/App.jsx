@@ -10,9 +10,9 @@ import jokes from './jokes';
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [token, setToken] = useState(null);
-  const [isCached, setIsCached] = useState(false);
   const [creditsUsed, setCreditsUsed] = useState(null);
   const [remainingCredits, setRemainingCredits] = useState(null);
+  const [isCached, setIsCached] = useState(false);
   const [researchTopic, setResearchTopic] = useState("");
   const [loading, setLoading] = useState(false);
   const [currentJoke, setCurrentJoke] = useState("");
@@ -204,10 +204,8 @@ function App() {
   
       if (!responseData.is_cached) {
         setCreditsUsed(responseData.credits_used);
-        setLastQueryCredits(responseData.credits_used);
       } else {
         setCreditsUsed(null);
-        setLastQueryCredits(null);
       }
     } catch (error) {
       console.error('Error fetching response:', error);
@@ -369,7 +367,7 @@ function App() {
           Remaining Credits: {remainingCredits}
           {isCached 
             ? " (Last query was cached)" 
-            : lastQueryCredits !== null ? ` (Last query used: ${lastQueryCredits})` : ''}
+            : creditsUsed !== null ? ` (Last query used: ${creditsUsed})` : ''}
         </div>
       )}
   
