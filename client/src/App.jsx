@@ -6,6 +6,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import styles from './index.module.css'; 
 import SimpleLogin from './SimpleLogin'; 
 import jokes from './jokes'; 
+import LoadingScreen from './LoadingScreen'; 
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -56,7 +57,7 @@ function App() {
   
   const warmUpServices = async (token) => {
     try {
-      await new Promise(resolve => setTimeout(resolve, 10000)); 
+      await new Promise(resolve => setTimeout(resolve, 5000)); 
 
       const healthCheck = await fetch(`${baseURL}/health`);
       if (healthCheck.ok) {
@@ -364,7 +365,15 @@ function App() {
 
   return (
     <div className={styles.app}>
-      {isWarmingUp && <LoadingScreen message="Warming up services..." />}
+      {isWarmingUp && (
+        <LoadingScreen 
+          messages={[
+            "Doing important stuff...", 
+            "Take a deep breath or something, almost done...",
+          ]}
+          interval={3000}
+        />
+      )}
       <header className={styles.header}>
         <div className={styles.menuToggle} onClick={() => setMenuOpen(!menuOpen)}>Menu</div>
         <div className={styles.title}>Professor Notes AI Assistant</div>
