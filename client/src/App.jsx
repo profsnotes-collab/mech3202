@@ -46,27 +46,33 @@ function App() {
       setIsLoggedIn(true);
       setLastQueryCached(data.last_query_cached);
   
-      await new Promise(resolve => setTimeout(resolve, 10000)); 
-
-      try {
-        const healthCheck = await fetch(`${baseURL}/health`);
-        if (healthCheck.ok) {
-          console.log('Services are ready');
-        } else {
-          console.log('Services may not be fully ready, but proceeding anyway');
-        }
-      } catch (error) {
-        console.log('Health check failed, but proceeding anyway');
-      }
-
-      await fetchUserCredits(data.token);
+      // Start the warm-up process
+      setIsWarmingUp(true);
+      warmUpServices(data.token);
     } catch (error) {
       console.error('Login error:', error);
-    } finally {
-      setIsWarmingUp(false);  
     }
   };
   
+  const warmUpServices = async (token) => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 10000)); 
+
+      const healthCheck = await fetch(`${baseURL}/health`);
+      if (healthCheck.ok) {
+        console.log('Services are ready');
+      } else {
+        console.log('Services may not be fully ready, but proceeding anyway');
+      }
+
+      await fetchUserCredits(token);
+    } catch (error) {
+      console.log('Warm-up process encountered an error:', error);
+    } finally {
+      setIsWarmingUp(false);
+    }
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (!user) {
@@ -358,7 +364,7 @@ function App() {
 
   return (
     <div className={styles.app}>
-      {isWarmingUp && <LoadingScreen message="Doing Important Stuff..." />}
+      {isWarmingUp && <LoadingScreen message="Warming up services..." />}
       <header className={styles.header}>
         <div className={styles.menuToggle} onClick={() => setMenuOpen(!menuOpen)}>Menu</div>
         <div className={styles.title}>Professor Notes AI Assistant</div>
