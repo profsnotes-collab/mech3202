@@ -1,9 +1,9 @@
 import React from 'react';
-import styles from './LoadingScreen.module.css'; // We'll create this CSS module next
+import styles from './LoadingScreen.module.css'; 
 
-const LoadingScreen = ({ message = "Doing important stuff..." }) => {
+const LoadingScreen = ({ message = "Doing important stuff...", className = '' }) => {
   return (
-    <div className={styles.loadingScreen}>
+    <div className={`${styles.loadingScreen} ${className}`}>
       <div className={styles.loadingWheel}></div>
       <p className={styles.loadingMessage}>{message}</p>
     </div>
