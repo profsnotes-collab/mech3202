@@ -12,7 +12,8 @@ function App() {
   const [token, setToken] = useState(null);
   const [lastQueryCredits, setLastQueryCredits] = useState(null);
   const [remainingCredits, setRemainingCredits] = useState(null);
-  const [lastQueryCached, setLastQueryCached] = useState(false); 
+  const [lastQueryCached, setLastQueryCached] = useState(false);
+  const [isWarmingUp, setIsWarmingUp] = useState(false);
   const [isCached, setIsCached] = useState(false);
   const [researchTopic, setResearchTopic] = useState("");
   const [loading, setLoading] = useState(false);
@@ -45,10 +46,24 @@ function App() {
       setIsLoggedIn(true);
       setLastQueryCached(data.last_query_cached);
   
-      // Fetch user credits immediately after successful login
+      await new Promise(resolve => setTimeout(resolve, 3000)); 
+
+      try {
+        const healthCheck = await fetch(`${baseURL}/health`);
+        if (healthCheck.ok) {
+          console.log('Services are ready');
+        } else {
+          console.log('Services may not be fully ready, but proceeding anyway');
+        }
+      } catch (error) {
+        console.log('Health check failed, but proceeding anyway');
+      }
+
       await fetchUserCredits(data.token);
     } catch (error) {
       console.error('Login error:', error);
+    } finally {
+      setIsWarmingUp(false);  
     }
   };
   
@@ -338,11 +353,12 @@ function App() {
   };
 
   if (!isLoggedIn) {
-    return <SimpleLogin onLogin={setIsLoggedIn} />;
+    return <SimpleLogin onLogin={handleLogin} />;
   }
 
   return (
     <div className={styles.app}>
+      {isWarmingUp && <LoadingScreen message="Doing Important Stuff..." />}
       <header className={styles.header}>
         <div className={styles.menuToggle} onClick={() => setMenuOpen(!menuOpen)}>Menu</div>
         <div className={styles.title}>Professor Notes AI Assistant</div>
