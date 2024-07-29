@@ -42,7 +42,8 @@ function App() {
       setToken(data.token);
       sessionStorage.setItem('token', data.token);
       setIsLoggedIn(true);
-      setRemainingCredits(data.credits); // Set initial credits after login
+      setRemainingCredits(data.credits);
+      setLastQueryCached(data.last_query_cached);
     } catch (error) {
       console.error('Login error:', error);
     }
@@ -53,14 +54,15 @@ function App() {
       if (!user) {
         setIsLoggedIn(false);
         setToken(null);
+        setRemainingCredits(null);
+        setLastQueryCached(false);
         sessionStorage.removeItem('token');
       } else {
-        // User is signed in, retrieve the token from session storage
         const storedToken = sessionStorage.getItem('token');
         if (storedToken) {
           setToken(storedToken);
           setIsLoggedIn(true);
-          fetchUserCredits(storedToken); // Fetch credits when user is authenticated
+          fetchUserCredits(storedToken); 
         }
       }
     });
@@ -370,7 +372,9 @@ function App() {
             ? " (Last query was cached)" 
             : lastQueryCredits !== null && lastQueryCredits !== undefined 
               ? ` (Last query used: ${lastQueryCredits})` 
-              : ''}
+              : lastQueryCached 
+                ? " (Last query was cached)"  
+                : ''}
         </div>
       )}
   
