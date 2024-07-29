@@ -34,22 +34,24 @@ function App() {
         },
         body: JSON.stringify({ idToken })
       });
-
+  
       if (!response.ok) {
         throw new Error('Login failed');
       }
-
+  
       const data = await response.json();
       setToken(data.token);
       sessionStorage.setItem('token', data.token);
       setIsLoggedIn(true);
-      setRemainingCredits(data.credits);
       setLastQueryCached(data.last_query_cached);
+  
+      // Fetch user credits immediately after successful login
+      await fetchUserCredits(data.token);
     } catch (error) {
       console.error('Login error:', error);
     }
   };
-
+  
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (!user) {
@@ -63,19 +65,19 @@ function App() {
         if (storedToken) {
           setToken(storedToken);
           setIsLoggedIn(true);
-          fetchUserCredits(storedToken); 
+          fetchUserCredits(storedToken);
         }
       }
     });
-
+  
     return () => unsubscribe();
   }, []);
-
+  
   const fetchUserCredits = async (currentToken) => {
     try {
       console.log('Fetching user credits...');
       console.log('Token:', currentToken ? `${currentToken.substring(0, 10)}...` : 'No token');
-
+  
       const response = await fetch(`${baseURL}/user_credits`, {
         method: 'GET',
         headers: {
@@ -83,15 +85,15 @@ function App() {
           'Content-Type': 'application/json'
         }
       });
-
+  
       console.log('Response status:', response.status);
-
+  
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Error response:', errorText);
         throw new Error(`Failed to fetch user credits: ${response.status} ${response.statusText}`);
       }
-
+  
       const data = await response.json();
       console.log('User credits data:', data);
       setRemainingCredits(data.credits);
@@ -99,29 +101,17 @@ function App() {
       console.error('Error fetching user credits:', error);
     }
   };
-
-  useEffect(() => {
-    if (isLoggedIn && token) {
-      // Only fetch credits if we don't already have them
-      if (remainingCredits === null) {
-        fetchUserCredits(token);
-      }
-    } else {
-      // Reset credits when logged out
-      setRemainingCredits(null);
-    }
-  }, [isLoggedIn, token, remainingCredits]);
-
+  
   const handleLogout = () => {
     signOut(auth).then(() => {
       setIsLoggedIn(false);
       setToken(null);
+      setRemainingCredits(null);
       sessionStorage.removeItem('token');
     }).catch((error) => {
       console.error("Error signing out:", error);
     });
   };
-
   const fetchSuggestions = async () => {
     console.log('fetchSuggestions function called');
 
