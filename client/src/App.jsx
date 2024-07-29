@@ -46,7 +46,7 @@ function App() {
       setIsLoggedIn(true);
       setLastQueryCached(data.last_query_cached);
   
-      await new Promise(resolve => setTimeout(resolve, 3000)); 
+      await new Promise(resolve => setTimeout(resolve, 10000)); 
 
       try {
         const healthCheck = await fetch(`${baseURL}/health`);
