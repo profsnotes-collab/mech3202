@@ -12,6 +12,7 @@ function App() {
   const [token, setToken] = useState(null);
   const [lastQueryCredits, setLastQueryCredits] = useState(null);
   const [remainingCredits, setRemainingCredits] = useState(null);
+  const [lastQueryCached, setLastQueryCached] = useState(false); 
   const [isCached, setIsCached] = useState(false);
   const [researchTopic, setResearchTopic] = useState("");
   const [loading, setLoading] = useState(false);
