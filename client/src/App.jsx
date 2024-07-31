@@ -348,12 +348,13 @@ function App() {
         {data.youtube_response.results.map((video, index) => {
           const url = new URL(video.timestamp);
           const videoId = url.searchParams.get('v');
+          const startTime = url.searchParams.get('t');
           return (
             <div key={index}>
               <h3>{video.title || 'Untitled'}</h3>
               <p>{video.description || 'No description available'}</p>
               <iframe
-                src={`https://www.youtube.com/embed/${videoId}?start=${url.searchParams.get('t')}`}
+                src={`https://www.youtube.com/embed/${videoId}?start=${startTime.replace('s', '')}`}
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
@@ -366,7 +367,6 @@ function App() {
       </div>
     );
   };
-
   if (!isLoggedIn) {
     return <SimpleLogin onLogin={handleLogin} />;
   }
