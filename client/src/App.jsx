@@ -312,7 +312,7 @@ function App() {
       return <p>No Wikipedia data available.</p>;
     }
   
-    const { Summary, "Top Three Images": topImages } = data.wikipedia_response.results;
+    const { Summary, Images } = data.wikipedia_response.results;
   
     return (
       <div>
@@ -320,9 +320,17 @@ function App() {
         {Summary && <p>{Summary}</p>}
   
         {/* Display images and descriptions */}
-        {topImages && Object.values(topImages).map((img, index) => (
+        {Images && Images.map((img, index) => (
           <div key={index}>
-            <img src={img.URL} alt={`Wiki Image ${index}`} className={styles.image} />
+            <img 
+              src={img.URL} 
+              alt={img.Title || `Wiki Image ${index}`} 
+              className={styles.image} 
+              onError={(e) => {
+                console.error(`Failed to load image: ${img.URL}`);
+                e.target.style.display = 'none';
+              }}
+            />
             {img.Description && <p>{img.Description}</p>}
           </div>
         ))}
