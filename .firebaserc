@@ -1,5 +1,9 @@
 {
   "projects": {
-    "default": "profsnotes-mech3202"
-  }
+    "default": "profs-notes-mech3202",
+    "profsnotes-v1": "profs-notes-mech3202"
+  },
+  "targets": {},
+  "etags": {},
+  "dataconnectEmulatorConfig": {}
 }

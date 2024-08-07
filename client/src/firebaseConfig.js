@@ -5,12 +5,13 @@ import { getFirestore } from "firebase/firestore";
 import { getAuth, signOut as firebaseSignOut, onAuthStateChanged } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyC3BqxXlnoq_WOB3EeXppAJ2riMkRulg7c",
-  authDomain: "profsnotes.firebaseapp.com",
-  projectId: "profsnotes",
-  storageBucket: "profsnotes.appspot.com",
-  messagingSenderId: "443678693481",  
-  appId: "1:443678693481:web:1e2ed6864d5a030330eaf8"
+  apiKey: "AIzaSyC0V3vPArL00c3-ax2k9v8J5MCiNGygNkw",
+  authDomain: "profs-notes-mech3202.firebaseapp.com",
+  projectId: "profs-notes-mech3202",
+  storageBucket: "profs-notes-mech3202.appspot.com",
+  messagingSenderId: "573968364158",
+  appId: "1:573968364158:web:e6e3021f43a81b60bade2f",
+  measurementId: "G-NKH9GYWBTX"
 };
 
 const app = initializeApp(firebaseConfig);

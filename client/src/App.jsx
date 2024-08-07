@@ -174,6 +174,7 @@ function App() {
   const fetchData = async () => {
     setLoading(true);
     setData(null);
+    setLastQueryCredits(null);
     setCurrentJoke(jokes[Math.floor(Math.random() * jokes.length)]);
   
     try {
@@ -214,14 +215,24 @@ function App() {
       console.log('Response data:', responseData);
   
       setData(responseData);
+      console.log('Setting remaining credits:', responseData.remaining_credits);
+
       setRemainingCredits(responseData.remaining_credits);
+      console.log('Setting isCached:', responseData.is_cached);
+
       setIsCached(responseData.is_cached);
   
       if (!responseData.is_cached) {
+        console.log('Setting lastQueryCredits:', responseData.credits_used);
         setLastQueryCredits(responseData.credits_used);
       } else {
-        setLastQueryCredits(null);
+        console.log('Query was cached, not updating lastQueryCredits');
       }
+      
+      console.log('Current state after update:');
+      console.log('- remainingCredits:', remainingCredits);
+      console.log('- isCached:', isCached);
+      console.log('- lastQueryCredits:', lastQueryCredits);
       
     } catch (error) {
       console.error('Error fetching response:', error);
@@ -400,11 +411,9 @@ function App() {
           Remaining Credits: {remainingCredits}
           {isCached 
             ? " (Last query was cached)" 
-            : lastQueryCredits !== null && lastQueryCredits !== undefined 
+            : lastQueryCredits !== null
               ? ` (Last query used: ${lastQueryCredits})` 
-              : lastQueryCached 
-                ? " (Last query was cached)"  
-                : ''}
+              : ''}
         </div>
       )}
   
