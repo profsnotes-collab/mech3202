@@ -267,7 +267,7 @@ function App() {
       </div>
     ));
   };
-
+//
   if (!isLoggedIn) {
     return <SimpleLogin onLogin={handleLogin} />;
   }
