@@ -1,0 +1,5 @@
+env/
+profsnotes-json/
+extras/
+.vscode/
+.env/

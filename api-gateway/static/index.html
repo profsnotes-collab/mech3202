@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en"> 
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Assistant</title>
+    <style>
+        .response-box {
+            border: 1px solid #000;
+            padding: 10px;
+            margin-top: 10px;
+        }
+        .suggestions {
+            border: 1px solid #ccc;
+            max-height: 150px;
+            overflow-y: auto;
+            position: absolute;
+            background-color: white;
+            width: 300px;
+        }
+        .suggestion-item {
+            padding: 5px;
+            cursor: pointer;
+        }
+        .suggestion-item:hover {
+            background-color: #eee;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        iframe {
+            width: 100%;
+            height: 315px;
+        }
+        .video-item {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .video-item h3 {
+            margin-top: 0;
+        }
+        .video-item iframe {
+            max-width: 100%;
+            margin-top: 10px;
+        }
+        #timer {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <h1>Student Assistant</h1>
+    <input type="text" id="query" placeholder="Ask your question here...">
+    <div id="suggestions" class="suggestions"></div>
+    <button id="submitButton">Submit</button>
+    <div id="timer"></div>
+
+    <div id="profsnotes-response" class="response-box">
+        <h2>ProfsNotes Response</h2>
+        <div id="profsnotes-content"></div>
+    </div>
+    
+    <div id="wikipedia-response" class="response-box">
+        <h2>Wikipedia Response</h2>
+        <div id="wikipedia-content"></div>
+    </div>
+
+    <div id="youtube-response" class="response-box">
+        <h2>YouTube Response</h2>
+        <div id="youtube-content"></div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const queryInput = document.getElementById('query');
+        const submitButton = document.getElementById('submitButton');
+        const timerElement = document.getElementById('timer');
+        let startTime;
+        let timerInterval;
+
+        queryInput.addEventListener('input', fetchSuggestions);
+        submitButton.addEventListener('click', askQuestion);
+        
+        const baseURL = window.location.origin;
+        console.log('Base URL (window.location.origin):', baseURL);
+
+        function startTimer() {
+            startTime = Date.now();
+            timerElement.textContent = 'Time: 0.00 seconds';
+            timerInterval = setInterval(updateTimer, 10);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+            const elapsedTime = (Date.now() - startTime) / 1000;
+            timerElement.textContent = `Time: ${elapsedTime.toFixed(2)} seconds`;
+        }
+
+        function updateTimer() {
+            const elapsedTime = (Date.now() - startTime) / 1000;
+            timerElement.textContent = `Time: ${elapsedTime.toFixed(2)} seconds`;
+        }
+
+        async function fetchSuggestions() {
+            const query = queryInput.value;
+            console.log(`Query input value: ${query}`);
+
+            if (query.length < 2) {
+                document.getElementById('suggestions').innerHTML = '';
+                return;
+            }
+
+            try {
+                console.log('Sending request to fetch suggestions...');
+
+                const response = await fetch(`${baseURL}/suggestions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ query })
+                });
+                console.log('Fetch response received:', response);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error(`Error fetching suggestions: ${response.status} ${response.statusText}`, errorText);
+                    throw new Error('Failed to fetch suggestions');
+                }
+
+                const suggestions = await response.json();
+                console.log('Suggestions:', suggestions);
+                displaySuggestions(suggestions);
+            } catch (error) {
+                console.error('Error fetching suggestions:', error);
+            }
+        }
+
+        function displaySuggestions(suggestions) {
+            const suggestionsContainer = document.getElementById('suggestions');
+            suggestionsContainer.innerHTML = '';
+            if (suggestions.length === 0) {
+                suggestionsContainer.innerHTML = '<div>No suggestions found</div>';
+                return;
+            }
+            suggestions.forEach(suggestion => {
+                const suggestionItem = document.createElement('div');
+                suggestionItem.innerHTML = highlightMatch(suggestion, queryInput.value);
+                suggestionItem.classList.add('suggestion-item');
+                suggestionItem.onclick = () => {
+                    queryInput.value = suggestion;
+                    askQuestion();
+                };
+                suggestionsContainer.appendChild(suggestionItem);
+            });
+        }
+        
+
+        function highlightMatch(text, query) {
+            const startIndex = text.toLowerCase().indexOf(query.toLowerCase());
+            if (startIndex === -1) {
+                return text;
+            }
+            const endIndex = startIndex + query.length;
+            return `${text.slice(0, startIndex)}<strong>${text.slice(startIndex, endIndex)}</strong>${text.slice(endIndex)}`;
+        }
+
+        async function askQuestion() {
+            const query = queryInput.value;
+            startTimer();
+        
+            // Clear previous content
+            document.getElementById('profsnotes-content').innerHTML = '';
+            document.getElementById('wikipedia-content').innerHTML = '';
+            document.getElementById('youtube-content').innerHTML = '';
+        
+            try {
+                const response = await fetch(`${baseURL}/query`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ query })
+                });
+        
+                if (!response.ok) {
+                    throw new Error('Failed to fetch response');
+                }
+        
+                const data = await response.json();
+                console.log('Full response data:', data);
+        
+                if (data.notes_response && data.notes_response.response) {
+                    console.log('ProfsNotes data:', data.notes_response.response);
+                    displayProfsNotes(data.notes_response.response);
+                } else {
+                    console.log('No ProfsNotes data in response');
+                    document.getElementById('profsnotes-content').textContent = 'No ProfsNotes data available.';
+                }
+        
+                if (data.wikipedia_response && data.wikipedia_response.results) {
+                    console.log('Wikipedia data:', data.wikipedia_response.results);
+                    displayWikipedia(data.wikipedia_response.results);
+                } else {
+                    console.log('No Wikipedia data in response');
+                    document.getElementById('wikipedia-content').textContent = 'No Wikipedia data available.';
+                }
+        
+                if (data.youtube_response && data.youtube_response.results) {
+                    console.log('YouTube data:', data.youtube_response.results);
+                    displayYouTube(data.youtube_response.results);
+                } else {
+                    console.log('No YouTube data in response');
+                    document.getElementById('youtube-content').textContent = 'No YouTube data available.';
+                }
+        
+            } catch (error) {
+                console.error('Error fetching response:', error);
+                document.getElementById('profsnotes-content').textContent = 'Error fetching data.';
+                document.getElementById('wikipedia-content').textContent = 'Error fetching data.';
+                document.getElementById('youtube-content').textContent = 'Error fetching data.';
+            } finally {
+                stopTimer();
+            }
+        }
+
+        function displayProfsNotes(response) {
+            console.log('ProfsNotes response:', response);
+            const container = document.getElementById('profsnotes-content');
+            container.innerHTML = '';
+        
+            // Check if response is nested
+            const content = response.response || response;
+        
+            if (content.Text) {
+                const text = document.createElement('p');
+                text.textContent = content.Text;
+                container.appendChild(text);
+            }
+        
+            let imageCounter = 1;
+            let equationCounter = 1;
+        
+            while (content[`Image${imageCounter}`] || content[`Equation${equationCounter}`]) {
+                if (content[`Image${imageCounter}`]) {
+                    const img = document.createElement('img');
+                    img.src = content[`Image${imageCounter}`];
+                    container.appendChild(img);
+        
+                    if (content[`ImageDescription${imageCounter}`]) {
+                        const imgDesc = document.createElement('p');
+                        imgDesc.textContent = content[`ImageDescription${imageCounter}`];
+                        container.appendChild(imgDesc);
+                    }
+                    imageCounter++;
+                }
+                
+                if (content[`Equation${equationCounter}`]) {
+                    const eq = document.createElement('p');
+                    eq.innerHTML = `$$${content[`Equation${equationCounter}`]}$$`;
+                    container.appendChild(eq);
+        
+                    if (content[`EquationDescription${equationCounter}`]) {
+                        const eqDesc = document.createElement('p');
+                        eqDesc.textContent = content[`EquationDescription${equationCounter}`];
+                        container.appendChild(eqDesc);
+                    }
+                    equationCounter++;
+                }
+            }
+        
+            MathJax.typeset();
+        }
+
+        function displayWikipedia(response) {
+            console.log('Wikipedia response:', response);
+            const container = document.getElementById('wikipedia-content');
+            container.innerHTML = '';
+
+            if (response.Summary) {
+                const summary = document.createElement('p');
+                summary.textContent = response.Summary;
+                container.appendChild(summary);
+            }
+
+            if (response['Top Three Images']) {
+                Object.keys(response['Top Three Images']).forEach(key => {
+                    const imgData = response['Top Three Images'][key];
+                    const img = document.createElement('img');
+                    img.src = imgData.URL;
+                    const description = document.createElement('p');
+                    description.textContent = `Description: ${imgData.Description}`;
+                    container.appendChild(img);
+                    container.appendChild(description);
+                });
+            }
+        }
+
+        function displayYouTube(results) {
+            console.log('Displaying YouTube results:', results);
+            const container = document.getElementById('youtube-content');
+            container.innerHTML = '';
+        
+            if (Array.isArray(results) && results.length > 0) {
+                results.forEach(video => {
+                    const videoDiv = document.createElement('div');
+                    videoDiv.className = 'video-item';
+        
+                    const title = document.createElement('h3');
+                    title.textContent = video.title || 'Untitled';
+        
+                    const description = document.createElement('p');
+                    description.textContent = video.description || 'No description available';
+        
+                    // Create embedded video
+                    const embed = document.createElement('iframe');
+                    
+                    // Parse the timestamp URL
+                    const url = new URL(video.timestamp);
+                    const videoId = url.searchParams.get('v');
+                    let startTime = url.searchParams.get('t') || '0s';
+                    
+                    // Convert start time to seconds
+                    startTime = startTime.endsWith('s') ? parseInt(startTime) : 0;
+        
+                    embed.src = `https://www.youtube.com/embed/${videoId}?start=${startTime}`;
+                    embed.width = "560";
+                    embed.height = "315";
+                    embed.frameBorder = "0";
+                    embed.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+                    embed.allowFullscreen = true;
+        
+                    videoDiv.appendChild(title);
+                    videoDiv.appendChild(description);
+                    videoDiv.appendChild(embed);
+        
+                    container.appendChild(videoDiv);
+                });
+            } else {
+                container.textContent = 'No YouTube results found.';
+            }
+        }
+    });
+    </script>
+</body>
+</html>

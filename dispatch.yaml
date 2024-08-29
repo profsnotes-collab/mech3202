@@ -1,0 +1,12 @@
+dispatch:
+  - url: "*/notes"
+    service: notes-service
+
+  - url: "*/wikipedia"
+    service: wikipedia-service
+
+  - url: "*/youtube"
+    service: youtube-service
+
+  - url: "*/"
+    service: default

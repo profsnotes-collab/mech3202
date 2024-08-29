@@ -1,0 +1,14 @@
+runtime: python311
+entrypoint: hypercorn wikipedia_service:app --bind 0.0.0.0:$PORT
+
+service: wikipedia-service
+
+env_variables:
+  GOOGLE_CLOUD_PROJECT: "profsnotes"
+  SECRET_ID: "openai-api-key"
+  SECRET_VERSION: "latest"
+
+automatic_scaling:
+  min_idle_instances: 1
+
+service_account: profsnotes@appspot.gserviceaccount.com

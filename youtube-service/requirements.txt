@@ -1,0 +1,15 @@
+aiohttp
+quart-cors
+google-api-core
+openai
+youtube-transcript-api
+google-api-python-client
+gunicorn
+google-cloud-secret-manager
+quart-cors
+google-cloud-logging
+async-openai
+orjson
+ujson
+PySocks
+aiohttp-socks

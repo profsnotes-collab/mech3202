@@ -1,0 +1,14 @@
+aiohttp
+openai
+urllib3
+wikipedia
+quart
+quart-cors
+fuzzywuzzy
+python-Levenshtein
+gunicorn
+google-cloud-secret-manager
+google-cloud-logging
+ujson
+async-openai
+pillow

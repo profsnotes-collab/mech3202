@@ -1,0 +1,17 @@
+runtime: python311
+entrypoint: hypercorn -w 4 -b :$PORT notes_service:app
+
+service: notes-service
+
+instance_class: F4
+
+automatic_scaling:
+  min_idle_instances: 1
+
+env_variables:
+  GOOGLE_CLOUD_PROJECT: "profsnotes"
+  SECRET_ID: "openai-api-key"
+  PINECONE_SECRET_ID: "pinecone-api-key"
+  SECRET_VERSION: "latest"
+
+service_account: profsnotes@appspot.gserviceaccount.com
